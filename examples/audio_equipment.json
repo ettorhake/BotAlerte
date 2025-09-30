@@ -1,0 +1,63 @@
+{
+  "monitor_name": "Surveillance Matériel Audio",
+  "description": "Surveillance de matériel audio d'occasion sur plusieurs sites",
+  "websites": [
+    {
+      "name": "Woodbrass",
+      "url": "https://www.woodbrass.com/second_life",
+      "enabled": true,
+      "search_terms": [
+        "elektron",
+        "moog",
+        "roland"
+      ],
+      "selectors": {
+        "product_containers": [
+          ".product-item",
+          ".product-card",
+          "[class*='product']"
+        ],
+        "title": [
+          "h2", "h3", ".title", "[class*='title']"
+        ],
+        "price": [
+          ".price", "[class*='price']"
+        ],
+        "link": ["a[href]"]
+      }
+    },
+    {
+      "name": "Reverb",
+      "url": "https://reverb.com/marketplace",
+      "enabled": true,
+      "search_terms": [
+        "vintage synthesizer"
+      ],
+      "selectors": {
+        "product_containers": [".listing-item"],
+        "title": [".listing-title"],
+        "price": [".price-display"],
+        "link": ["a[href]"]
+      }
+    }
+  ],
+  "email_settings": {
+    "sender_email": "votre-email@gmail.com",
+    "sender_password": "",
+    "recipient_emails": ["destinataire@example.com"],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587
+  },
+  "monitoring_settings": {
+    "check_interval_hours": 3,
+    "max_products_per_alert": 5,
+    "avoid_duplicates": true,
+    "log_level": "INFO"
+  },
+  "advanced_settings": {
+    "rotate_user_agents": true,
+    "min_delay_between_sites": 15,
+    "exclude_terms": ["défectueux", "pièces"],
+    "use_selenium": false
+  }
+}

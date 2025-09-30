@@ -1,0 +1,75 @@
+# Bot de Surveillance Universel - Fichiers à ignorer
+
+# Logs
+*.log
+bot_monitor.log
+debug.log
+error.log
+
+# Cache des produits vus
+seen_products.json
+product_cache.json
+detected_products.json
+
+# Configurations avec mots de passe
+config_with_passwords.json
+private_config.json
+*_config.json
+my_*.json
+
+# Selenium
+chromedriver*
+geckodriver*
+
+# Environnements Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environnements virtuels
+venv/
+ENV/
+env/
+.venv
+.ENV
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Sauvegardes
+*.bak
+*.backup
+config.json.bak
+
+# Fichiers temporaires
+temp_*
+test_*_temp.json

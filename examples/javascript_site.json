@@ -1,0 +1,53 @@
+{
+  "monitor_name": "Surveillance E-commerce",
+  "description": "Exemple de surveillance produits avec support JavaScript",
+  "websites": [
+    {
+      "name": "Site avec JavaScript",
+      "url": "https://example-ecommerce.com/products",
+      "enabled": true,
+      "search_terms": [
+        "produit-recherche"
+      ],
+      "selectors": {
+        "product_containers": [
+          ".product",
+          "[data-product]",
+          ".item-card"
+        ],
+        "title": [
+          ".product-title",
+          "h2",
+          "[data-title]"
+        ],
+        "price": [
+          ".price",
+          ".product-price",
+          "[data-price]"
+        ],
+        "link": ["a[href]"]
+      }
+    }
+  ],
+  "email_settings": {
+    "sender_email": "votre-email@gmail.com",
+    "sender_password": "",
+    "recipient_emails": ["destinataire@example.com"],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587
+  },
+  "monitoring_settings": {
+    "check_interval_hours": 1,
+    "max_products_per_alert": 10,
+    "avoid_duplicates": true,
+    "log_level": "INFO"
+  },
+  "advanced_settings": {
+    "rotate_user_agents": true,
+    "min_delay_between_sites": 10,
+    "exclude_terms": [],
+    "use_selenium": true,
+    "selenium_wait_seconds": 15,
+    "selenium_headless": true
+  }
+}
