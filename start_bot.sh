@@ -3,12 +3,17 @@
 # BotAlerte - Script de démarrage Linux/Mac
 # Équivalent de start_bot.bat pour les systèmes Unix
 
+# Variable globale pour la commande Python (sera définie dans check_python)
+PYTHON_CMD="python3"
+
 # Couleurs pour l'affichage
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
+CYAN='\     echo -e "${BLUE}${SEARCH} Test de $config_file...${NC}"
+    $PYTHON_CMD test_universal.py "$config_file" echo -e "${BLUE}${SEARCH} Test de la configuration...${NC}"
+    $PYTHON_CMD test_universal.py config.json3[0;36m'
 NC='\033[0m' # No Color
 
 # Émojis
@@ -24,6 +29,35 @@ CHECK="✅"
 WARNING="⚠️"
 INFO="💡"
 
+# Fonction pour vérifier la version Python (sans dépendances externes)
+check_python_version() {
+    local python_cmd="$1"
+    
+    if ! command -v "$python_cmd" &> /dev/null; then
+        return 1
+    fi
+    
+    # Obtenir version major.minor
+    local version_output
+    version_output=$($python_cmd -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null)
+    
+    if [[ $? -ne 0 ]]; then
+        return 1
+    fi
+    
+    # Extraire major et minor
+    local major_version=$(echo "$version_output" | cut -d'.' -f1)
+    local minor_version=$(echo "$version_output" | cut -d'.' -f2)
+    
+    # Vérifier si >= 3.7
+    if [[ $major_version -gt 3 ]] || [[ $major_version -eq 3 && $minor_version -ge 7 ]]; then
+        echo "$version_output"
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Fonction pour afficher le header
 show_header() {
     clear
@@ -35,21 +69,25 @@ show_header() {
 
 # Fonction pour vérifier Python
 check_python() {
-    if ! command -v python3 &> /dev/null; then
-        echo -e "${RED}${WARNING} Python 3 n'est pas installé${NC}"
+    local python_version
+    
+    # Essayer python3 d'abord
+    if python_version=$(check_python_version "python3"); then
+        PYTHON_CMD="python3"
+        echo -e "${GREEN}${CHECK} Python $python_version détecté avec python3 (compatible)${NC}"
+    # Puis essayer python
+    elif python_version=$(check_python_version "python"); then
+        PYTHON_CMD="python"
+        echo -e "${GREEN}${CHECK} Python $python_version détecté avec python (compatible)${NC}"
+    else
+        echo -e "${RED}${WARNING} Python 3.7+ non trouvé${NC}"
         echo -e "${INFO} Veuillez installer Python 3.7+ avant de continuer"
         echo ""
         echo "Ubuntu/Debian: sudo apt install python3 python3-pip"
         echo "CentOS/RHEL:   sudo yum install python3 python3-pip"
         echo "MacOS:         brew install python3"
+        echo "Ou utilisez:   ./install.sh"
         echo ""
-        exit 1
-    fi
-    
-    # Vérifier la version de Python
-    python_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-    if [[ $(echo "$python_version >= 3.7" | bc -l) -eq 0 ]]; then
-        echo -e "${RED}${WARNING} Python $python_version détecté. Version 3.7+ requise${NC}"
         exit 1
     fi
     
@@ -130,19 +168,19 @@ check_dependencies() {
     
     missing_deps=()
     
-    if ! python3 -c "import requests" 2>/dev/null; then
+    if ! $PYTHON_CMD -c "import requests" 2>/dev/null; then
         missing_deps+=("requests")
     fi
     
-    if ! python3 -c "import bs4" 2>/dev/null; then
+    if ! $PYTHON_CMD -c "import bs4" 2>/dev/null; then
         missing_deps+=("beautifulsoup4")
     fi
     
-    if ! python3 -c "import schedule" 2>/dev/null; then
+    if ! $PYTHON_CMD -c "import schedule" 2>/dev/null; then
         missing_deps+=("schedule")
     fi
     
-    if ! python3 -c "import lxml" 2>/dev/null; then
+    if ! $PYTHON_CMD -c "import lxml" 2>/dev/null; then
         missing_deps+=("lxml")
     fi
     
@@ -179,7 +217,7 @@ start_bot() {
     echo -e "${GREEN}${ROCKET} Démarrage du bot de surveillance...${NC}"
     echo -e "${INFO} Appuyez sur Ctrl+C pour arrêter${NC}"
     echo ""
-    python3 universal_monitor.py
+    $PYTHON_CMD universal_monitor.py
 }
 
 # Fonction pour tester la configuration
@@ -194,8 +232,8 @@ test_config() {
 # Fonction pour configurer l'email
 setup_email() {
     echo ""
-    echo -e "${CYAN}${EMAIL} Configuration de l'email...${NC}"
-    python3 setup_email.py
+    echo -e "${BLUE}${GEAR} Configuration de l'email...${NC}"
+    $PYTHON_CMD setup_email.py
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
@@ -204,7 +242,7 @@ setup_email() {
 create_config() {
     echo ""
     echo -e "${YELLOW}${GEAR} Création d'une nouvelle configuration...${NC}"
-    python3 config_generator.py
+    $PYTHON_CMD config_generator.py
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }

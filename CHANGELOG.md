@@ -5,6 +5,19 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2024-01-XX
+
+### Corrigé
+- **Compatibilité Python étendue** : Support de Python 3.11+ (toutes versions 3.7+)
+- **Suppression dépendance bc** : Scripts fonctionnent sans calculatrice bash
+- **Détection Python améliorée** : Gestion automatique des commandes `python` et `python3`
+- **Script de test** : Nouveau `test_compatibility.sh` pour vérifier la compatibilité
+
+### Amélioré
+- **Messages d'erreur** : Diagnostics plus clairs pour les problèmes de versions
+- **Installation automatique** : Meilleure détection des dépendances système
+- **Documentation** : Guide de dépannage étendu
+
 ## [2.0.0] - 2024-01-XX
 
 ### Ajouté

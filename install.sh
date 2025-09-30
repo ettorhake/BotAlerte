@@ -52,13 +52,13 @@ install_python() {
     case $OS in
         "ubuntu")
             sudo apt update
-            sudo apt install -y python3 python3-pip python3-venv
+            sudo apt install -y python3 python3-pip python3-venv bc
             ;;
         "centos")
-            sudo yum install -y python3 python3-pip
+            sudo yum install -y python3 python3-pip bc
             ;;
         "arch")
-            sudo pacman -S python python-pip
+            sudo pacman -S python python-pip bc
             ;;
         "macos")
             if command -v brew &> /dev/null; then

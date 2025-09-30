@@ -231,6 +231,21 @@ start /B python universal_monitor.py config.json
 2. Augmentez `selenium_wait_seconds`
 3. Vérifiez que ChromeDriver est installé
 
+### Problèmes de compatibilité Python
+1. **Erreur `bc: command not found`** : Les scripts ont été corrigés pour ne plus utiliser `bc`
+2. **Python 3.11+ non reconnu** : Toutes les versions Python 3.7+ sont maintenant supportées
+3. Testez la compatibilité : `./test_compatibility.sh`
+
+### Script de test de compatibilité
+```bash
+# Linux/Mac
+chmod +x test_compatibility.sh
+./test_compatibility.sh
+
+# Windows (Git Bash/WSL)
+bash test_compatibility.sh
+```
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! 
