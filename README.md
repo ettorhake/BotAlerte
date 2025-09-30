@@ -1,4 +1,4 @@
-# 🤖 BotAlerte - Bot d## Installation automatique 🚀
+# 🤖 BotAlerte - Bot d'alerte automatique 🚀
 
 Pour une installation automatique avec toutes les dépendances :
 
