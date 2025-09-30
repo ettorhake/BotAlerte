@@ -132,6 +132,21 @@ brew install python3                   # Mac
 # Le bot supporte Python 3.7+ (incluant 3.11+)
 ```
 
+### ❌ Erreur "externally-managed-environment" (Ubuntu 22.04+, Debian 12+)
+```bash
+# Solution automatique avec environnement virtuel
+chmod +x install_venv.sh
+./install_venv.sh
+
+# Puis lancer avec:
+./start_with_venv.sh
+
+# Ou manuellement:
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ### ❌ Chrome non trouvé
 ```bash
 # Linux

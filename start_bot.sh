@@ -3,17 +3,18 @@
 # BotAlerte - Script de démarrage Linux/Mac
 # Équivalent de start_bot.bat pour les systèmes Unix
 
-# Variable globale pour la commande Python (sera définie dans check_python)
+# Variables globales
 PYTHON_CMD="python3"
+PIP_CMD="pip3"
+VENV_DIR="venv"
+USE_VENV=false
 
 # Couleurs pour l'affichage
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-CYAN='\     echo -e "${BLUE}${SEARCH} Test de $config_file...${NC}"
-    $PYTHON_CMD test_universal.py "$config_file" echo -e "${BLUE}${SEARCH} Test de la configuration...${NC}"
-    $PYTHON_CMD test_universal.py config.json3[0;36m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Émojis
@@ -94,6 +95,49 @@ check_python() {
     echo -e "${GREEN}${CHECK} Python $python_version détecté${NC}"
 }
 
+# Fonction pour créer un environnement virtuel
+create_venv() {
+    echo -e "${INFO} Création d'un environnement virtuel Python..."
+    
+    if ! $PYTHON_CMD -m venv "$VENV_DIR"; then
+        echo -e "${RED}${WARNING} Impossible de créer l'environnement virtuel${NC}"
+        echo -e "${INFO} Installation de python3-venv..."
+        
+        if command -v apt &> /dev/null; then
+            sudo apt update && sudo apt install python3-venv python3-full -y
+        elif command -v yum &> /dev/null; then
+            sudo yum install python3-venv -y
+        else
+            echo -e "${RED}Veuillez installer python3-venv manuellement${NC}"
+            return 1
+        fi
+        
+        # Réessayer
+        if ! $PYTHON_CMD -m venv "$VENV_DIR"; then
+            echo -e "${RED}${WARNING} Échec de création de l'environnement virtuel${NC}"
+            return 1
+        fi
+    fi
+    
+    echo -e "${GREEN}${CHECK} Environnement virtuel créé${NC}"
+    return 0
+}
+
+# Fonction pour activer l'environnement virtuel
+activate_venv() {
+    if [ -f "$VENV_DIR/bin/activate" ]; then
+        source "$VENV_DIR/bin/activate"
+        PYTHON_CMD="$VENV_DIR/bin/python"
+        PIP_CMD="$VENV_DIR/bin/pip"
+        USE_VENV=true
+        echo -e "${GREEN}${CHECK} Environnement virtuel activé${NC}"
+        return 0
+    else
+        echo -e "${RED}${WARNING} Environnement virtuel non trouvé${NC}"
+        return 1
+    fi
+}
+
 # Fonction pour installer les dépendances
 install_dependencies() {
     echo -e "${BLUE}📦 Installation des dépendances Python...${NC}"
@@ -105,9 +149,9 @@ install_dependencies() {
         echo -e "${INFO} Installation de pip3..."
         
         if command -v apt &> /dev/null; then
-            sudo apt update && sudo apt install python3-pip -y
+            sudo apt update && sudo apt install python3-pip python3-venv python3-full -y
         elif command -v yum &> /dev/null; then
-            sudo yum install python3-pip -y
+            sudo yum install python3-pip python3-venv -y
         elif command -v brew &> /dev/null; then
             echo -e "${INFO} pip3 devrait être disponible avec Python3 via Homebrew"
         else
@@ -117,14 +161,41 @@ install_dependencies() {
         fi
     fi
     
-    # Installation des dépendances
+    # Tentative d'installation directe d'abord
     echo -e "${INFO} Installation des paquets Python..."
-    if pip3 install -r requirements.txt; then
+    if $PIP_CMD install -r requirements.txt 2>/dev/null; then
         echo -e "${GREEN}${CHECK} Dépendances installées avec succès${NC}"
     else
-        echo -e "${RED}${WARNING} Erreur lors de l'installation des dépendances${NC}"
-        echo -e "${INFO} Essayez: pip3 install --user -r requirements.txt"
-        exit 1
+        echo -e "${YELLOW}${WARNING} Installation système échouée (environnement géré)${NC}"
+        echo -e "${INFO} Tentative avec --user...${NC}"
+        
+        # Essayer avec --user
+        if $PIP_CMD install --user -r requirements.txt 2>/dev/null; then
+            echo -e "${GREEN}${CHECK} Dépendances installées avec --user${NC}"
+        else
+            echo -e "${YELLOW}${WARNING} Installation --user impossible${NC}"
+            echo -e "${INFO} Création d'un environnement virtuel...${NC}"
+            
+            # Créer et utiliser un environnement virtuel
+            if create_venv && activate_venv; then
+                echo -e "${INFO} Installation dans l'environnement virtuel...${NC}"
+                if $PIP_CMD install -r requirements.txt; then
+                    echo -e "${GREEN}${CHECK} Dépendances installées dans l'environnement virtuel${NC}"
+                    echo -e "${INFO} L'environnement virtuel sera utilisé automatiquement${NC}"
+                else
+                    echo -e "${RED}${WARNING} Échec d'installation dans l'environnement virtuel${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}${WARNING} Impossible de créer l'environnement virtuel${NC}"
+                echo -e "${INFO} Solutions manuelles:${NC}"
+                echo "1. sudo apt install python3-full python3-venv"
+                echo "2. python3 -m venv venv && source venv/bin/activate"
+                echo "3. pip install -r requirements.txt"
+                echo "4. Ou utilisez: pip3 install --break-system-packages -r requirements.txt"
+                exit 1
+            fi
+        fi
     fi
     
     # Installation optionnelle de Selenium/ChromeDriver
@@ -134,7 +205,7 @@ install_dependencies() {
     
     if [[ $install_chrome =~ ^[Yy]$ ]]; then
         echo -e "${INFO} Installation de webdriver-manager..."
-        pip3 install webdriver-manager
+        $PIP_CMD install webdriver-manager
         
         # Tenter d'installer Chrome si pas présent
         if ! command -v google-chrome &> /dev/null && ! command -v chromium-browser &> /dev/null; then
@@ -162,9 +233,21 @@ install_dependencies() {
     sleep 2
 }
 
+# Fonction pour vérifier et configurer l'environnement Python
+setup_python_environment() {
+    # Vérifier si un environnement virtuel existe et l'activer
+    if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/activate" ]; then
+        echo -e "${INFO} Environnement virtuel détecté, activation...${NC}"
+        activate_venv
+    fi
+}
+
 # Fonction pour vérifier les dépendances
 check_dependencies() {
-    echo -e "${INFO} Vérification des dépendances..."
+    echo -e "${INFO} Vérification des dépendances...${NC}"
+    
+    # Configurer l'environnement Python (venv si disponible)
+    setup_python_environment
     
     missing_deps=()
     
@@ -187,10 +270,13 @@ check_dependencies() {
     if [ ${#missing_deps[@]} -ne 0 ]; then
         echo -e "${RED}${WARNING} Dépendances manquantes: ${missing_deps[*]}${NC}"
         echo ""
-        echo -e "${INFO} Installation automatique des dépendances..."
+        echo -e "${INFO} Installation automatique des dépendances...${NC}"
         install_dependencies
     else
         echo -e "${GREEN}${CHECK} Toutes les dépendances sont installées${NC}"
+        if [ "$USE_VENV" = true ]; then
+            echo -e "${INFO} Utilisation de l'environnement virtuel: $VENV_DIR${NC}"
+        fi
     fi
 }
 
@@ -217,6 +303,7 @@ start_bot() {
     echo -e "${GREEN}${ROCKET} Démarrage du bot de surveillance...${NC}"
     echo -e "${INFO} Appuyez sur Ctrl+C pour arrêter${NC}"
     echo ""
+    setup_python_environment
     $PYTHON_CMD universal_monitor.py
 }
 
@@ -224,7 +311,8 @@ start_bot() {
 test_config() {
     echo ""
     echo -e "${BLUE}${TEST} Test de la configuration...${NC}"
-    python3 test_universal.py config.json
+    setup_python_environment
+    $PYTHON_CMD test_universal.py config.json
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
@@ -268,7 +356,8 @@ manual_test() {
     config_file=${config_file:-config.json}
     echo ""
     echo -e "${CYAN}${SEARCH} Test manuel avec $config_file...${NC}"
-    python3 test_universal.py "$config_file"
+    setup_python_environment
+    $PYTHON_CMD test_universal.py "$config_file"
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
@@ -303,7 +392,8 @@ start_daemon() {
     
     # Démarrer en arrière-plan
     echo -e "${INFO} Démarrage en mode daemon..."
-    nohup python3 universal_monitor.py > bot.log 2>&1 &
+    setup_python_environment
+    nohup $PYTHON_CMD universal_monitor.py > bot.log 2>&1 &
     bot_pid=$!
     
     echo -e "${GREEN}${CHECK} Bot démarré en arrière-plan${NC}"

@@ -234,7 +234,32 @@ start /B python universal_monitor.py config.json
 ### Problèmes de compatibilité Python
 1. **Erreur `bc: command not found`** : Les scripts ont été corrigés pour ne plus utiliser `bc`
 2. **Python 3.11+ non reconnu** : Toutes les versions Python 3.7+ sont maintenant supportées
-3. Testez la compatibilité : `./test_compatibility.sh`
+3. **Erreur "externally-managed-environment"** : Utilisez l'installation avec environnement virtuel
+4. Testez la compatibilité : `./test_compatibility.sh`
+
+### Environnement Python externally-managed (Ubuntu 22.04+, Debian 12+)
+Si vous obtenez l'erreur "externally-managed-environment" :
+
+**Solution automatique :**
+```bash
+chmod +x install_venv.sh
+./install_venv.sh
+```
+
+**Ou manuellement :**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python universal_monitor.py
+```
+
+**Lancement avec environnement virtuel :**
+```bash
+./start_with_venv.sh
+# Ou manuellement:
+source venv/bin/activate && python universal_monitor.py
+```
 
 ### Script de test de compatibilité
 ```bash

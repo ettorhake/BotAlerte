@@ -5,6 +5,24 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2024-01-XX
+
+### Ajouté
+- **Support environnement virtuel** : Installation automatique avec `venv` pour systèmes "externally-managed"
+- **Script install_venv.sh** : Installation spécialisée pour Ubuntu 22.04+/Debian 12+
+- **Script start_with_venv.sh** : Lancement automatique avec environnement virtuel
+- **Gestion PEP 668** : Support des distributions Linux récentes
+
+### Corrigé
+- **Erreur "externally-managed-environment"** : Solution automatique avec environnement virtuel
+- **Installation dépendances** : Fallback intelligent sur --user et venv
+- **Gestion pip dans start_bot.sh** : Utilisation des bonnes commandes selon l'environnement
+
+### Amélioré
+- **Documentation environnements virtuels** : Guide complet dans README et QUICKSTART
+- **Scripts d'installation** : Détection et gestion automatique des environnements Python
+- **Messages informatifs** : Indications claires sur l'environnement utilisé
+
 ## [2.0.1] - 2024-01-XX
 
 ### Corrigé
