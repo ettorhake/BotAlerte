@@ -301,18 +301,43 @@ show_menu() {
 start_bot() {
     echo ""
     echo -e "${GREEN}${ROCKET} Démarrage du bot de surveillance...${NC}"
+    
+    # Sélectionner la configuration
+    local selected_config
+    selected_config=$(select_config)
+    
+    if [ $? -ne 0 ] || [ -z "$selected_config" ]; then
+        echo -e "${RED}${WARNING} Aucune configuration sélectionnée${NC}"
+        return 1
+    fi
+    
+    echo ""
+    echo -e "${INFO} Configuration: ${CYAN}$selected_config${NC}"
     echo -e "${INFO} Appuyez sur Ctrl+C pour arrêter${NC}"
     echo ""
+    
     setup_python_environment
-    $PYTHON_CMD universal_monitor.py
+    $PYTHON_CMD universal_monitor.py "$selected_config"
 }
 
 # Fonction pour tester la configuration
 test_config() {
     echo ""
     echo -e "${BLUE}${TEST} Test de la configuration...${NC}"
+    
+    # Sélectionner la configuration
+    local selected_config
+    selected_config=$(select_config)
+    
+    if [ $? -ne 0 ] || [ -z "$selected_config" ]; then
+        echo -e "${RED}${WARNING} Aucune configuration sélectionnée${NC}"
+        return 1
+    fi
+    
+    echo ""
+    echo -e "${INFO} Test de: ${CYAN}$selected_config${NC}"
     setup_python_environment
-    $PYTHON_CMD test_universal.py config.json
+    $PYTHON_CMD test_universal.py "$selected_config"
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
@@ -335,6 +360,51 @@ create_config() {
     read -p "Appuyez sur Entrée pour continuer..."
 }
 
+# Fonction pour sélectionner une configuration
+select_config() {
+    local configs=(*.json)
+    
+    if [ ${#configs[@]} -eq 0 ]; then
+        echo -e "${RED}${WARNING} Aucun fichier de configuration trouvé${NC}"
+        echo -e "${INFO} Créez d'abord une configuration (option 4)${NC}"
+        return 1
+    fi
+    
+    echo ""
+    echo -e "${BLUE}${LIST} Configurations disponibles:${NC}"
+    echo ""
+    
+    for i in "${!configs[@]}"; do
+        local config="${configs[$i]}"
+        if [ -f "$config" ]; then
+            # Extraire le nom du monitor depuis le JSON
+            local monitor_name=""
+            if command -v jq &> /dev/null; then
+                monitor_name=$(jq -r '.monitor_name // "Nom non défini"' "$config" 2>/dev/null)
+            else
+                monitor_name=$(grep -o '"monitor_name"[[:space:]]*:[[:space:]]*"[^"]*"' "$config" 2>/dev/null | sed 's/.*"monitor_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+            fi
+            
+            echo -e "${GREEN}[$((i+1))]${NC} 📄 $config"
+            if [ -n "$monitor_name" ] && [ "$monitor_name" != "Nom non défini" ]; then
+                echo -e "     ${CYAN}📋 $monitor_name${NC}"
+            fi
+        fi
+    done
+    
+    echo ""
+    read -p "Choisissez une configuration (1-${#configs[@]}) ou Entrée pour config.json: " choice
+    
+    if [ -z "$choice" ]; then
+        echo "config.json"
+    elif [[ "$choice" -ge 1 && "$choice" -le ${#configs[@]} ]]; then
+        echo "${configs[$((choice-1))]}"
+    else
+        echo -e "${RED}Choix invalide${NC}"
+        return 1
+    fi
+}
+
 # Fonction pour lister les configurations
 list_configs() {
     echo ""
@@ -342,22 +412,49 @@ list_configs() {
     echo ""
     for config in *.json; do
         if [ -f "$config" ]; then
+            # Extraire des infos du JSON
+            local monitor_name=""
+            local website_count=0
+            
+            if command -v jq &> /dev/null; then
+                monitor_name=$(jq -r '.monitor_name // "Nom non défini"' "$config" 2>/dev/null)
+                website_count=$(jq -r '.websites | length' "$config" 2>/dev/null)
+            else
+                monitor_name=$(grep -o '"monitor_name"[[:space:]]*:[[:space:]]*"[^"]*"' "$config" 2>/dev/null | sed 's/.*"monitor_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+                website_count=$(grep -o '"websites"[[:space:]]*:[[:space:]]*\[' "$config" 2>/dev/null | wc -l)
+            fi
+            
             echo -e "${GREEN}📄${NC} $config"
+            if [ -n "$monitor_name" ] && [ "$monitor_name" != "Nom non défini" ]; then
+                echo -e "   ${CYAN}📋 $monitor_name${NC}"
+            fi
+            if [ "$website_count" -gt 0 ]; then
+                echo -e "   ${YELLOW}🌐 $website_count site(s)${NC}"
+            fi
+            echo ""
         fi
     done
-    echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
 
 # Fonction pour test manuel
 manual_test() {
     echo ""
-    read -p "Fichier de configuration (config.json): " config_file
-    config_file=${config_file:-config.json}
+    echo -e "${CYAN}${SEARCH} Test manuel de recherche...${NC}"
+    
+    # Sélectionner la configuration
+    local selected_config
+    selected_config=$(select_config)
+    
+    if [ $? -ne 0 ] || [ -z "$selected_config" ]; then
+        echo -e "${RED}${WARNING} Aucune configuration sélectionnée${NC}"
+        return 1
+    fi
+    
     echo ""
-    echo -e "${CYAN}${SEARCH} Test manuel avec $config_file...${NC}"
+    echo -e "${INFO} Test manuel avec: ${CYAN}$selected_config${NC}"
     setup_python_environment
-    $PYTHON_CMD test_universal.py "$config_file"
+    $PYTHON_CMD test_universal.py "$selected_config"
     echo ""
     read -p "Appuyez sur Entrée pour continuer..."
 }
@@ -390,10 +487,20 @@ start_daemon() {
         fi
     fi
     
+    # Sélectionner la configuration
+    local selected_config
+    selected_config=$(select_config)
+    
+    if [ $? -ne 0 ] || [ -z "$selected_config" ]; then
+        echo -e "${RED}${WARNING} Aucune configuration sélectionnée${NC}"
+        return 1
+    fi
+    
     # Démarrer en arrière-plan
+    echo -e "${INFO} Configuration: ${CYAN}$selected_config${NC}"
     echo -e "${INFO} Démarrage en mode daemon..."
     setup_python_environment
-    nohup $PYTHON_CMD universal_monitor.py > bot.log 2>&1 &
+    nohup $PYTHON_CMD universal_monitor.py "$selected_config" > bot.log 2>&1 &
     bot_pid=$!
     
     echo -e "${GREEN}${CHECK} Bot démarré en arrière-plan${NC}"

@@ -1,0 +1,93 @@
+{
+  "monitor_name": "Ma Surveillance Personnalisée",
+  "description": "Surveillance de produits personnalisée",
+  "websites": [
+    {
+      "name": "Site à personnaliser",
+      "url": "https://votre-site.com/recherche",
+      "enabled": true,
+      "search_terms": [
+        "votre-mot-cle-1",
+        "votre-mot-cle-2"
+      ],
+      "selectors": {
+        "product_containers": [
+          ".product-item",
+          ".product-card",
+          ".item",
+          "[class*='product']",
+          ".listing-item",
+          ".grid-item"
+        ],
+        "title": [
+          "h2",
+          "h3",
+          ".title",
+          ".name",
+          "[class*='title']",
+          "[class*='name']"
+        ],
+        "price": [
+          ".price",
+          "[class*='price']",
+          ".cost",
+          "[class*='cost']"
+        ],
+        "link": [
+          "a[href]"
+        ],
+        "description": [
+          ".description",
+          ".desc",
+          "[class*='description']"
+        ]
+      },
+      "custom_headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      },
+      "wait_between_requests": 2
+    }
+  ],
+  "email_settings": {
+    "sender_email": "votre-email@gmail.com",
+    "sender_password": "",
+    "recipient_emails": [
+      "votre-email@gmail.com"
+    ],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "subject_template": "🔍 ALERTE {search_term} détecté sur {website_name}! ({count} produit(s))",
+    "send_summary": true
+  },
+  "monitoring_settings": {
+    "check_interval_hours": 1,
+    "max_products_per_alert": 5,
+    "avoid_duplicates": true,
+    "log_level": "INFO",
+    "timeout_seconds": 30,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 5
+  },
+  "notification_settings": {
+    "discord_webhook": "",
+    "slack_webhook": "",
+    "telegram_bot_token": "",
+    "telegram_chat_id": ""
+  },
+  "advanced_settings": {
+    "use_proxy": false,
+    "proxy_url": "",
+    "rotate_user_agents": true,
+    "respect_robots_txt": true,
+    "min_delay_between_sites": 10,
+    "exclude_terms": [
+      "défectueux",
+      "cassé",
+      "pièces détachées",
+      "hors service"
+    ],
+    "use_selenium": false,
+    "selenium_wait_seconds": 10,
+    "selenium_headless": true
+  }
+}
