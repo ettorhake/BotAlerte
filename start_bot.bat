@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 title Bot de Surveillance Universel
 color 0A
@@ -38,15 +39,24 @@ goto MENU
 :START_BOT
 echo.
 echo 🚀 Démarrage du bot de surveillance...
+echo.
+call :SELECT_CONFIG
+if "%selected_config%"=="" goto MENU
+echo 💡 Configuration: %selected_config%
 echo ⏹️  Appuyez sur Ctrl+C pour arrêter
 echo.
-python universal_monitor.py
+python universal_monitor.py "%selected_config%"
 goto MENU
 
 :TEST_CONFIG
 echo.
 echo 🧪 Test de la configuration...
-python test_universal.py config.json
+echo.
+call :SELECT_CONFIG
+if "%selected_config%"=="" goto MENU
+echo 💡 Test de: %selected_config%
+echo.
+python test_universal.py "%selected_config%"
 echo.
 pause
 goto MENU
@@ -73,21 +83,77 @@ echo 📋 Configurations disponibles:
 echo.
 for %%f in (*.json) do (
     echo 📄 %%f
+    rem Essayer d'extraire le nom du monitor (simplifié)
+    findstr /C:"monitor_name" "%%f" >nul 2>&1
+    if not errorlevel 1 (
+        for /f "tokens=2 delims=:" %%a in ('findstr /C:"monitor_name" "%%f"') do (
+            set monitor_name=%%a
+            set monitor_name=!monitor_name:"=!
+            set monitor_name=!monitor_name: =!
+            set monitor_name=!monitor_name:,=!
+            if not "!monitor_name!"=="" echo    📋 !monitor_name!
+        )
+    )
+    echo.
 )
-echo.
 pause
 goto MENU
 
 :MANUAL_TEST
 echo.
-set /p config_file="Fichier de configuration (config.json): "
-if "%config_file%"=="" set config_file=config.json
+echo 🔍 Test manuel de recherche...
 echo.
-echo 🔍 Test manuel avec %config_file%...
-python test_universal.py "%config_file%"
+call :SELECT_CONFIG
+if "%selected_config%"=="" goto MENU
+echo � Test manuel avec: %selected_config%
+echo.
+python test_universal.py "%selected_config%"
 echo.
 pause
 goto MENU
+
+:SELECT_CONFIG
+set selected_config=
+echo 📋 Configurations disponibles:
+echo.
+set /a count=0
+for %%f in (*.json) do (
+    set /a count+=1
+    echo [!count!] 📄 %%f
+    set config!count!=%%f
+)
+echo.
+if %count%==0 (
+    echo ❌ Aucune configuration trouvée
+    echo 💡 Créez d'abord une configuration (option 4)
+    pause
+    exit /b
+)
+echo [0] 🔙 Retour au menu
+echo.
+set /p choice="Choisissez une configuration (0-%count%) ou Entrée pour config.json: "
+
+if "%choice%"=="" (
+    if exist "config.json" (
+        set selected_config=config.json
+        exit /b
+    ) else (
+        echo ❌ config.json non trouvé
+        pause
+        exit /b
+    )
+)
+
+if "%choice%"=="0" exit /b
+
+if %choice% geq 1 if %choice% leq %count% (
+    call set selected_config=%%config%choice%%%
+    exit /b
+)
+
+echo ❌ Choix invalide
+pause
+exit /b
 
 :EXIT
 echo.
